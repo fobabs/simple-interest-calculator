@@ -30,6 +30,7 @@ class SIForm extends StatefulWidget {
 }
 
 class _SIFormState extends State<SIForm> {
+  final _formKey = GlobalKey<FormState>();
   final double _whiteSpaces = 5.0;
   final List<String> _currencies = ['Rupees', 'Pounds', 'Dollars', 'Euro'];
   String _selectedItem = '';
@@ -53,103 +54,118 @@ class _SIFormState extends State<SIForm> {
       appBar: AppBar(
         title: const Text('Simple Interest Calculator'),
       ),
-      body: Container(
-        padding: EdgeInsets.all(_whiteSpaces * 2),
-        child: ListView(
-          children: <Widget>[
-            const Image(
-              width: 125.0,
-              height: 125.0,
-              image: AssetImage('images/money.png'),
-            ),
-            SizedBox(height: _whiteSpaces * 2),
-            _textField(
-                'Principal', 'Enter Principal e.g. 12000', principalController),
-            SizedBox(height: _whiteSpaces * 2),
-            _textField('Rate of Interest', 'In percent', roiController),
-            SizedBox(height: _whiteSpaces * 2),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: _textField('Term', 'Time in years', termController),
-                ),
-                SizedBox(width: _whiteSpaces * 2),
-                Expanded(
-                  child: DropdownButton<String>(
-                    items: _currencies.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? userSelectedItem) {
-                      setState(() {
-                        _selectedItem = userSelectedItem!;
-                      });
-                    },
-                    value: _selectedItem,
+      body: Form(
+        key: _formKey,
+        child: Padding(
+          padding: EdgeInsets.all(_whiteSpaces * 2),
+          child: ListView(
+            children: <Widget>[
+              const Image(
+                width: 125.0,
+                height: 125.0,
+                image: AssetImage('images/money.png'),
+              ),
+              SizedBox(height: _whiteSpaces * 2),
+              _textField('Principal', 'Enter Principal e.g. 12000',
+                  principalController, 'Please enter the principal'),
+              SizedBox(height: _whiteSpaces * 2),
+              _textField('Rate of Interest', 'In percent', roiController,
+                  'Please enter the interest'),
+              SizedBox(height: _whiteSpaces * 2),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _textField('Term', 'Time in years', termController,
+                        'Please enter the years'),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: _whiteSpaces * 2),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: Theme.of(context).colorScheme.secondary,
-                      onPrimary: Theme.of(context).primaryColorDark,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        displayResult = calculateReturns();
-                      });
-                    },
-                    child: const Text(
-                      'Calculate',
-                      textScaleFactor: 1.5,
+                  SizedBox(width: _whiteSpaces * 2),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      items: _currencies.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (String? userSelectedItem) {
+                        setState(() {
+                          _selectedItem = userSelectedItem!;
+                        });
+                      },
+                      value: _selectedItem,
                     ),
                   ),
-                ),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: Theme.of(context).primaryColorDark,
-                      onPrimary: Theme.of(context).primaryColorLight,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _reset();
-                      });
-                    },
-                    child: const Text(
-                      'Reset',
-                      textScaleFactor: 1.5,
+                ],
+              ),
+              SizedBox(height: _whiteSpaces * 2),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Theme.of(context).colorScheme.secondary,
+                        onPrimary: Theme.of(context).primaryColorDark,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          if (_formKey.currentState!.validate()) {
+                            displayResult = calculateReturns();
+                          }
+                        });
+                      },
+                      child: const Text(
+                        'Calculate',
+                        textScaleFactor: 1.5,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: _whiteSpaces * 2),
-            Text(displayResult),
-          ],
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Theme.of(context).primaryColorDark,
+                        onPrimary: Theme.of(context).primaryColorLight,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _reset();
+                        });
+                      },
+                      child: const Text(
+                        'Reset',
+                        textScaleFactor: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: _whiteSpaces * 2),
+              Text(displayResult),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _textField(String label, String hint,
-      [TextEditingController? control]) {
+      [TextEditingController? control, String? validateIt]) {
     TextStyle? textStyle = Theme.of(context).textTheme.titleMedium;
-    return TextField(
+    return TextFormField(
       keyboardType: TextInputType.number,
       style: textStyle,
       controller: control,
+      validator: (String? value) {
+        if (value!.isEmpty) {
+          return validateIt;
+        }
+      },
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         labelStyle: textStyle,
+        errorStyle: const TextStyle(
+          color: Colors.yellowAccent,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_whiteSpaces),
         ),
